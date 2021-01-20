@@ -1,0 +1,53 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "bundler/setup"
+require "goodmoggoodnews"
+require 'logger'
+require "irb"
+
+# ぴあがメンテナンス中かどうか確認するためのURI
+MONITOR_URI = URI("https://fan.pia.jp/the-pillows/")
+#MONITOR_URI = URI("https://ssl.vmeta.jp/dummy/")
+#MONITOR_URI = URI("https://ssl.vmeta.jp/")
+
+logger = Logger.new(STDOUT)
+twitter = Goodmoggoodnews::Twitter.new
+
+# ぴあのメンテナンス: 毎週火曜・水曜日の午前2時30分～午前5時30分
+# メンテナンス中の場合は何もせず終了する
+response = Goodmoggoodnews::Crawler.get(MONITOR_URI)
+unless response.success?
+    msg = "更新検出失敗: ぴあがメンテナンス中かも"
+    logger.warn(msg)
+    exit false
+end
+
+# どこまで読んだ
+last_article_id = twitter.last_article_id
+
+# 新着記事を調べる
+found = Goodmoggoodnews::Crawler.crawl(id: last_article_id)
+new_articles = found.map{|e| e[:response]}
+new_article_ids = found.map{|e| e[:id]}
+
+if found.empty?
+    msg = "新着記事はありませんでした。終了します。"
+    logger.info(msg)
+    exit true
+end
+
+# 記事番号を更新
+if last_article_id < new_article_ids.max
+    logger.info("Updating bookmark: last_id=#{last_article_id}, new_id=#{new_article_ids.max}")
+    twitter.last_article_id = new_article_ids.max
+end
+
+# 新着記事をツイート
+new_articles.each do |e|
+    response = Goodmoggoodnews::Crawler.get(e.env.url)
+    tweet_body = Goodmoggoodnews::Scraper.scrape(response.body) + "\n" + e.env.url.to_s
+    twitter.client.update tweet_body
+    logger.info tweet_body
+    Goodmoggoodnews.sleep_random
+end
