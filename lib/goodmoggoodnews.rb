@@ -28,7 +28,7 @@ class Goodmoggoodnews
 
     def last_article_id
       # TwitterプロフィールのLocationを最新記事の番号の保存場所として使う
-      @client&.user&.location&.to_i 
+      @client&.user&.location&.to_i
     end
 
     def last_article_id=(id)
@@ -61,7 +61,7 @@ class Goodmoggoodnews
         u = URI.parse("#{BLOG_URL_PREFIX}")
 
         conn = Faraday::Connection.new(u,
-          headers: 
+          headers:
           {
             "User-Agent": USER_AGENT
           }) do |builder|
@@ -78,14 +78,14 @@ class Goodmoggoodnews
         break unless response.success?
         retval << { id: i, response: response}
       end
-      
+
       retval
     end
 
     # 指定されたURIの記事を取得
     def self.get(uri)
       conn = Faraday::Connection.new(URI(uri),
-        headers: 
+        headers:
         {
           "User-Agent": USER_AGENT
         }) do |builder|
