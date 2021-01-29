@@ -3,13 +3,13 @@
 
 require "bundler/setup"
 require "goodmoggoodnews"
-require 'logger'
+require "logger"
 require "irb"
 
 # ぴあがメンテナンス中かどうか確認するためのURI
 MONITOR_URI = URI("https://fan.pia.jp/the-pillows/")
-#MONITOR_URI = URI("https://ssl.vmeta.jp/dummy/")
-#MONITOR_URI = URI("https://ssl.vmeta.jp/")
+# MONITOR_URI = URI("https://ssl.vmeta.jp/dummy/")
+# MONITOR_URI = URI("https://ssl.vmeta.jp/")
 
 LOG_TAG = "GoodMogGoodNews"
 
@@ -54,7 +54,7 @@ else
     logger.info(LOG_TAG) { "Updating bookmark: last_photos_id=#{last_news_id}, new_news_id=#{new_news_ids.max}" }
     twitter.last_news_id = new_news_ids.max
   end
-  
+
   # 新着記事をツイート
   new_news.each do |e|
     response = Goodmoggoodnews::Crawler.get(e.env.url)
@@ -76,7 +76,7 @@ else
     logger.info(LOG_TAG) { "Updating bookmark: last_photo_id=#{last_photo_id}, new_photo_id=#{new_photo_ids.max}" }
     twitter.last_photo_id = new_photo_ids.max
   end
-  
+
   # 新着記事をツイート
   new_photos.each do |e|
     response = Goodmoggoodnews::Crawler.get(e.env.url)
