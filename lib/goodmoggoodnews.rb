@@ -7,32 +7,53 @@ require 'faraday'
 require 'faraday_middleware'
 require 'nokogiri'
 require 'active_support'
+require 'active_support/core_ext'
 
 class Goodmoggoodnews
   BLOG_URL_PREFIX = 'https://fan.pia.jp/the-pillows/news/detail/'
-  USER_AGENT = "GoodMorningGoodNews/#{Goodmoggoodnews::VERSION}; https://twitter.com/GoodMogGoodNews"
+  PHOTOS_URL_PREFIX = 'https://fan.pia.jp/the-pillows/photo/detail/'
+  USER_AGENT = "GoodMogGoodNews/#{Goodmoggoodnews::VERSION}; https://twitter.com/GoodMogGoodNews"
+  #USER_AGENT = "DanceWithBot/#{Goodmoggoodnews::VERSION}; https://twitter.com/DanceWithBot"
   class Error < StandardError; end
 
   # Twitter関連の操作
   class Twitter
-    attr_reader :client
+    attr_reader :client, :location
 
-    def initialize(prefix: BLOG_URL_PREFIX)
+    def initialize
       @client = ::Twitter::REST::Client.new(
         consumer_key:         ENV['CONSUMER_KEY'],
         consumer_secret:      ENV['CONSUMER_SECRET'],
         access_token:         ENV['ACCESS_TOKEN'],
         access_token_secret:  ENV['ACCESS_TOKEN_SECRET'],
       )
-    end
 
-    def last_article_id
       # TwitterプロフィールのLocationを最新記事の番号の保存場所として使う
-      @client&.user&.location&.to_i
+      @location =  {}
+      begin
+        json = @client&.user&.location
+        @location = JSON.parse(json, symbolize_names: true)
+      rescue JSON::ParserError => e
+        @location = {n: 0, p: 0}
+      end
     end
 
-    def last_article_id=(id)
-      @client.update_profile(location: id)
+    def last_news_id
+      @location[:n]
+    end
+
+    def last_news_id=(id)
+      @location.merge!(n: id)
+      @client.update_profile(location: @location.to_json)
+    end
+
+    def last_photo_id
+      @location[:p]
+    end
+
+    def last_photo_id=(id)
+      @location.merge!(p: id)
+      @client.update_profile(location: @location.to_json)
     end
   end
 
@@ -49,16 +70,36 @@ class Goodmoggoodnews
       "#{date} #{title}"
     end
 
+    def self.scrape_photo_page(string)
+      html = Nokogiri::HTML.parse(string)
+      
+      title = html.xpath('/html/head/meta[@property="og:title"]/@content').text
+      title = "タイトル取得失敗" if title.blank?
+
+      "【PHOTO】#{title}"
+    end
+
   end
 
   # 最新記事をチェックするためのモジュール
   module Crawler
-    # 最新記事をチェック
-    def self.crawl(id: 0)
+
+    def self.crawl(id: 0, type: nil)
+      prefix = ""
+
+      case type
+      when :news
+        prefix = BLOG_URL_PREFIX
+      when :photo
+        prefix = PHOTOS_URL_PREFIX
+      else
+        raise ArgumentError
+      end
+
       retval = []
 
       (id+1..).each do |i|
-        u = URI.parse("#{BLOG_URL_PREFIX}")
+        u = URI.parse("#{prefix}")
 
         conn = Faraday::Connection.new(u,
           headers:

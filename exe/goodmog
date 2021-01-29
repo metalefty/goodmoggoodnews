@@ -11,43 +11,78 @@ MONITOR_URI = URI("https://fan.pia.jp/the-pillows/")
 #MONITOR_URI = URI("https://ssl.vmeta.jp/dummy/")
 #MONITOR_URI = URI("https://ssl.vmeta.jp/")
 
+LOG_TAG = "GoodMogGoodNews"
+
 logger = Logger.new(STDOUT)
 twitter = Goodmoggoodnews::Twitter.new
+
+logger.info(LOG_TAG) { "もぐもぐアラート起動！" }
 
 # ぴあのメンテナンス: 毎週火曜・水曜日の午前2時30分～午前5時30分
 # メンテナンス中の場合は何もせず終了する
 response = Goodmoggoodnews::Crawler.get(MONITOR_URI)
 unless response.success?
-    msg = "更新検出失敗: ぴあがメンテナンス中かも"
-    logger.warn(msg)
-    exit false
+  msg = "更新検出失敗: ぴあがメンテナンス中かも"
+  logger.error(LOG_TAG) { msg }
+  exit false
 end
 
 # どこまで読んだ
-last_article_id = twitter.last_article_id
+last_news_id = twitter.last_news_id
+last_photo_id = twitter.last_photo_id
 
 # 新着記事を調べる
-found = Goodmoggoodnews::Crawler.crawl(id: last_article_id)
-new_articles = found.map{|e| e[:response]}
-new_article_ids = found.map{|e| e[:id]}
+logger.info(LOG_TAG) { "NEWSの新着記事を調べています。" }
+found_news = Goodmoggoodnews::Crawler.crawl(id: last_news_id, type: :news)
 
-if found.empty?
-    msg = "新着記事はありませんでした。終了します。"
-    logger.info(msg)
-    exit true
-end
+logger.info(LOG_TAG) { "PHOTOの新着記事を調べています。" }
+found_photos = Goodmoggoodnews::Crawler.crawl(id: last_photo_id, type: :photo)
 
-# 記事番号を更新
-if last_article_id < new_article_ids.max
-    logger.info("Updating bookmark: last_id=#{last_article_id}, new_id=#{new_article_ids.max}")
-    twitter.last_article_id = new_article_ids.max
-end
+new_news = found_news.map{|e| e[:response]}
+new_news_ids = found_news.map{|e| e[:id]}
+new_photos = found_photos.map{|e| e[:response]}
+new_photo_ids = found_photos.map{|e| e[:id]}
 
-# 新着記事をツイート
-new_articles.each do |e|
+if found_news.empty?
+  msg = "新着記事(NEWS)はありませんでした。"
+  logger.info(LOG_TAG) { msg }
+else
+  msg = "#{found_news.count}件の新着NEWSを発見しました。"
+  logger.info(LOG_TAG) { msg }
+  # 記事番号を更新
+  if last_news_id < new_news_ids.max
+    logger.info(LOG_TAG) { "Updating bookmark: last_photos_id=#{last_news_id}, new_news_id=#{new_news_ids.max}" }
+    twitter.last_news_id = new_news_ids.max
+  end
+  
+  # 新着記事をツイート
+  new_news.each do |e|
     response = Goodmoggoodnews::Crawler.get(e.env.url)
     tweet_body = Goodmoggoodnews::Scraper.scrape(response.body) + "\n" + e.env.url.to_s
     twitter.client.update tweet_body
-    logger.info tweet_body
+    logger.info("Tweet") { tweet_body }
     Goodmoggoodnews.sleep_random
+  end
+end
+
+if found_photos.empty?
+  msg = "新着記事(PHOTO)はありませんでした。"
+  logger.info(LOG_TAG) { msg }
+else
+  msg = "#{found_photos.count}件の新着PHOTOを発見しました。"
+  logger.info(LOG_TAG) { msg }
+  # 記事番号を更新
+  if last_photo_id < new_photo_ids.max
+    logger.info(LOG_TAG) { "Updating bookmark: last_photo_id=#{last_photo_id}, new_photo_id=#{new_photo_ids.max}" }
+    twitter.last_photo_id = new_photo_ids.max
+  end
+  
+  # 新着記事をツイート
+  new_photos.each do |e|
+    response = Goodmoggoodnews::Crawler.get(e.env.url)
+    tweet_body = Goodmoggoodnews::Scraper.scrape_photo_page(response.body) + "\n" + e.env.url.to_s
+    twitter.client.update tweet_body
+    logger.info("Tweet") { tweet_body }
+    Goodmoggoodnews.sleep_random
+  end
 end
