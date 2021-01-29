@@ -38,10 +38,10 @@ found_news = Goodmoggoodnews::Crawler.crawl(id: last_news_id, type: :news)
 logger.info(LOG_TAG) { "PHOTOの新着記事を調べています。" }
 found_photos = Goodmoggoodnews::Crawler.crawl(id: last_photo_id, type: :photo)
 
-new_news = found_news.map{|e| e[:response]}
-new_news_ids = found_news.map{|e| e[:id]}
-new_photos = found_photos.map{|e| e[:response]}
-new_photo_ids = found_photos.map{|e| e[:id]}
+new_news = found_news.map { |e| e[:response] }
+new_news_ids = found_news.map { |e| e[:id] }
+new_photos = found_photos.map { |e| e[:response] }
+new_photo_ids = found_photos.map { |e| e[:id] }
 
 if found_news.empty?
   msg = "新着記事(NEWS)はありませんでした。"

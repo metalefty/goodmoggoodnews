@@ -34,7 +34,7 @@ class Goodmoggoodnews
         json = @client&.user&.location
         @location = JSON.parse(json, symbolize_names: true)
       rescue JSON::ParserError => e
-        @location = {n: 0, p: 0}
+        @location = { n: 0, p: 0 }
       end
     end
 
@@ -117,7 +117,7 @@ class Goodmoggoodnews
         Goodmoggoodnews.sleep_random
 
         break unless response.success?
-        retval << { id: i, response: response}
+        retval << { id: i, response: response }
       end
 
       retval
