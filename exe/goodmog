@@ -51,7 +51,7 @@ else
   logger.info(LOG_TAG) { msg }
   # 記事番号を更新
   if last_news_id < new_news_ids.max
-    logger.info(LOG_TAG) { "Updating bookmark: last_photos_id=#{last_news_id}, new_news_id=#{new_news_ids.max}" }
+    logger.info(LOG_TAG) { "Updating bookmark: last_news_id=#{last_news_id}, new_news_id=#{new_news_ids.max}" }
     twitter.last_news_id = new_news_ids.max
   end
 
