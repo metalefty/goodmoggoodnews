@@ -139,7 +139,7 @@ class Goodmoggoodnews
     end
   end
 
-  def self.sleep_random(wait = 10)
+  def self.sleep_random(wait = 2)
     sleep SecureRandom.random_number(wait)
   end
 end
