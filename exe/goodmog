@@ -30,6 +30,7 @@ end
 # どこまで読んだ
 last_news_id = twitter.last_news_id
 last_photo_id = twitter.last_photo_id
+last_ticket_id = twitter.last_ticket_id
 
 ################
 #     BLOG     #
@@ -90,6 +91,39 @@ else
   new_photos.each do |e|
     response = Goodmoggoodnews::Crawler.get(e.env.url)
     tweet_body = Goodmoggoodnews::Scraper.scrape_photo_page(response.body) + "\n" + e.env.url.to_s
+    twitter.client.update tweet_body
+    logger.info("Tweet") { tweet_body }
+    Goodmoggoodnews.sleep_random(10)
+  end
+end
+
+################
+#    TICKET    #
+################
+
+# TICKET: 新着記事を調べる
+logger.info(LOG_TAG) { "TICKETの新着記事を調べています。" }
+found_tickets = Goodmoggoodnews::Crawler.crawl(id: last_ticket_id, type: :ticket)
+
+new_tickets = found_tickets.map{ |e| e[:response] }
+new_ticket_ids = found_tickets.map{ |e| e[:id] }
+
+if found_tickets.empty?
+  msg = "新着記事(TICKET)はありませんでした。"
+  logger.info(LOG_TAG) { msg }
+else
+  msg = "#{found_tickets.count}件のチケット情報を発見しました。"
+  logger.info(LOG_TAG) { msg }
+  # 記事番号を更新
+  if last_ticket_id < new_ticket_ids.max
+    logger.info(LOG_TAG) { "Updating bookmark: last_ticket_id=#{last_ticket_id}, new_ticket_id=#{new_ticket_ids.max}" }
+    twitter.last_ticket_id = new_ticket_ids.max
+  end
+
+  # 新着記事をツイート
+  new_tickets.each do |e|
+    response = Goodmoggoodnews::Crawler.get(e.env.url)
+    tweet_body = Goodmoggoodnews::Scraper.scrape_ticket_page(response.body) + "\n" + e.env.url.to_s
     twitter.client.update tweet_body
     logger.info("Tweet") { tweet_body }
     Goodmoggoodnews.sleep_random(10)

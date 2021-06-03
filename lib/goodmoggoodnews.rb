@@ -12,6 +12,7 @@ require "active_support/core_ext"
 class Goodmoggoodnews
   BLOG_URL_PREFIX = "https://fan.pia.jp/the-pillows/news/detail/"
   PHOTOS_URL_PREFIX = "https://fan.pia.jp/the-pillows/photo/detail/"
+  TICKET_URL_PREFIX = "https://fan.pia.jp/the-pillows/ticket/detail/"
   USER_AGENT = "GoodMogGoodNews/#{Goodmoggoodnews::VERSION}; https://twitter.com/GoodMogGoodNews"
   # USER_AGENT = "DanceWithBot/#{Goodmoggoodnews::VERSION}; https://twitter.com/DanceWithBot"
   class Error < StandardError; end
@@ -34,12 +35,12 @@ class Goodmoggoodnews
         json = @client&.user&.location
         @location = JSON.parse(json, symbolize_names: true)
       rescue JSON::ParserError
-        @location = { n: 0, p: 0 }
+        @location = { n: 0, p: 0, t: 0 }
       end
     end
 
     def last_news_id
-      @location[:n]
+      @location[:n] || 0
     end
 
     def last_news_id=(id)
@@ -48,11 +49,20 @@ class Goodmoggoodnews
     end
 
     def last_photo_id
-      @location[:p]
+      @location[:p] || 0
     end
 
     def last_photo_id=(id)
       @location.merge!(p: id)
+      @client.update_profile(location: @location.to_json)
+    end
+
+    def last_ticket_id
+      @location[:t] || 0
+    end
+
+    def last_ticket_id=(id)
+      @location.merge!(t: id)
       @client.update_profile(location: @location.to_json)
     end
   end
@@ -78,6 +88,15 @@ class Goodmoggoodnews
 
       "【PHOTO】#{title}"
     end
+
+    def self.scrape_ticket_page(string)
+      html = Nokogiri::HTML.parse(string)
+
+      title = html.xpath('/html/head/meta[@property="og:title"]/@content').text
+      title = "タイトル取得失敗" if title.blank?
+
+      "【チケット情報】#{title}"
+    end
   end
 
   # 最新記事をチェックするためのモジュール
@@ -90,6 +109,8 @@ class Goodmoggoodnews
         prefix = BLOG_URL_PREFIX
       when :photo
         prefix = PHOTOS_URL_PREFIX
+      when :ticket
+        prefix = TICKET_URL_PREFIX
       else
         raise ArgumentError
       end
