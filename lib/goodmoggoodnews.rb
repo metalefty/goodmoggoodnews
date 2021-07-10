@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "goodmoggoodnews/version"
+require_relative "goodmoggoodnews/runner"
 
 require "twitter"
 require "faraday"

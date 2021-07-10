@@ -1,7 +1,12 @@
 PATH
   remote: .
   specs:
-    goodmoggoodnews (0.2.2)
+    goodmoggoodnews (0.3.0)
+      activesupport (~> 6.1.1)
+      faraday (~> 1.3.0)
+      faraday_middleware (~> 1.0.0)
+      nokogiri (~> 1.11.1)
+      twitter (~> 7.0.0)
 
 GEM
   remote: https://rubygems.org/
@@ -100,14 +105,9 @@ PLATFORMS
   x86_64-freebsd-12
 
 DEPENDENCIES
-  activesupport (~> 6.1.1)
-  faraday (~> 1.3.0)
-  faraday_middleware (~> 1.0.0)
   goodmoggoodnews!
-  nokogiri (~> 1.11.1)
   rake (~> 13.0)
   rubocop (~> 0.80)
-  twitter (~> 7.0.0)
 
 BUNDLED WITH
    2.2.3
