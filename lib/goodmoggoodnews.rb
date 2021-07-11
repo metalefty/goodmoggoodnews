@@ -159,6 +159,22 @@ class Goodmoggoodnews
 
       response
     end
+
+    # 指定されたURIの記事を取得(HEAD)
+    def self.head(uri)
+      conn = Faraday::Connection.new(URI(uri),
+                                     headers:
+                                     {
+                                       "User-Agent": USER_AGENT
+                                     }) do |builder|
+        builder.use Faraday::Response::Logger
+        builder.use FaradayMiddleware::FollowRedirects
+      end
+
+      response = conn.head
+
+      response
+    end
   end
 
   def self.sleep_random(wait = 2)

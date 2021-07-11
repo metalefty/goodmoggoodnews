@@ -17,7 +17,7 @@ class Goodmoggoodnews
 
       # ぴあのメンテナンス: 毎週火曜・水曜日の午前2時30分～午前5時30分
       # メンテナンス中の場合は何もせず終了する
-      response = Goodmoggoodnews::Crawler.get(MONITOR_URI)
+      response = Goodmoggoodnews::Crawler.head(MONITOR_URI)
       unless response.success?
         msg = "更新検出失敗: ぴあがメンテナンス中かも"
         logger.error(LOG_TAG) { msg }
