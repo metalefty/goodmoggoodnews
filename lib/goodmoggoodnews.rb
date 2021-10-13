@@ -9,6 +9,7 @@ require "faraday_middleware"
 require "nokogiri"
 require "active_support"
 require "active_support/core_ext"
+require "acrive_support/time"
 
 class Goodmoggoodnews
   BLOG_URL_PREFIX = "https://fan.pia.jp/the-pillows/news/detail/"

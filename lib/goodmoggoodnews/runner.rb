@@ -15,6 +15,19 @@ class Goodmoggoodnews
 
       logger.info(LOG_TAG) { "もぐもぐアラート起動！" }
 
+      # ぴあのメンテナンス:
+      #   ぴあ側の仕様変更によりメンテナンスをうまく検出できなくなったため
+      #   毎週火曜日・水曜日の 2:30～5:30 は停止する
+      #     http://sorry.pia.jp/mainte/pia/
+      now = Time.now.in_time_zone('Asia/Tokyo')
+      if now.tuesday? || now.wednesday?
+        if now.hour.between?(1, 5)
+          msg = "ぴあがメンテナンス中"
+          logger.error(LOG_TAG) { msg }
+          exit false
+        end
+      end
+
       # ぴあのメンテナンス: 毎週火曜・水曜日の午前2時30分～午前5時30分
       # メンテナンス中の場合は何もせず終了する
       response = Goodmoggoodnews::Crawler.head(MONITOR_URI)
