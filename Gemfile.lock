@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    goodmoggoodnews (0.3.2)
+    goodmoggoodnews (0.3.3)
       activesupport (~> 6.1.1)
       faraday (~> 1.3.0)
       faraday_middleware (~> 1.0.0)
