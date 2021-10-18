@@ -128,7 +128,8 @@ class Goodmoggoodnews
                                          "User-Agent": USER_AGENT
                                        }) do |builder|
           builder.use Faraday::Response::Logger
-          builder.use FaradayMiddleware::FollowRedirects
+          # メンテナンス中はリダイレクトがかかっているので追わない
+          # builder.use FaradayMiddleware::FollowRedirects
         end
 
         response = conn.head do |request|
