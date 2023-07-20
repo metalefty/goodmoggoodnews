@@ -2,11 +2,14 @@
 
 require_relative "goodmoggoodnews/version"
 require_relative "goodmoggoodnews/runner"
+require_relative "goodmoggoodnews/line_runner"
 
 require "twitter"
 require "faraday"
 require "faraday_middleware"
 require "nokogiri"
+require "redis"
+require "line-bot-api"
 require "active_support"
 require "active_support/core_ext"
 require "active_support/time"
@@ -18,6 +21,49 @@ class Goodmoggoodnews
   USER_AGENT = "GoodMogGoodNews/#{Goodmoggoodnews::VERSION}; https://twitter.com/GoodMogGoodNews"
   # USER_AGENT = "DanceWithBot/#{Goodmoggoodnews::VERSION}; https://twitter.com/DanceWithBot"
   class Error < StandardError; end
+
+  # Redis 関連の操作
+  class Redis
+    def initialize
+      @client = ::Redis.new(url: ENV['REDIS_URL'] || "redis://localhost")
+    end
+
+    def last_news_id
+      @client.get(:n).to_i
+    end
+
+    def last_news_id=(id)
+      @client.set(:n, id)
+    end
+
+    def last_photo_id
+      @client.get(:p).to_i
+    end
+
+    def last_photo_id=(id)
+      @client.set(:p, id)
+    end
+
+    def last_ticket_id
+      @client.get(:t).to_i
+    end
+
+    def last_ticket_id=(id)
+      @client.set(:t, id)
+    end
+  end
+
+  # Line関連の操作
+  class Line
+    attr_reader :client
+
+    def initialize
+      @client = ::Line::Bot::Client.new{|config|
+        config.channel_secret = ENV["LINE_CHANNEL_SECRET"]
+        config.channel_token = ENV["LINE_CHANNEL_TOKEN"]
+      }
+    end
+  end
 
   # Twitter関連の操作
   class Twitter
