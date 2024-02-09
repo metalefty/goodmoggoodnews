@@ -33,6 +33,8 @@ Gem::Specification.new do |spec|
   spec.add_dependency "faraday", "~> 1.3.0"
   spec.add_dependency "faraday_middleware", "~> 1.0.0"
   spec.add_dependency "activesupport", "~> 6.1.1"
+  spec.add_dependency "line-bot-api", "~> 1.2"
+  spec.add_dependency "redis", "~> 5.0.1"
 
   # For more information and examples about making a new gem, checkout our
   # guide at: https://bundler.io/guides/creating_gem.html
