@@ -186,6 +186,15 @@ class Goodmoggoodnews
 
         break unless response.success?
 
+        # 「しばらくお待ちください。」で公開されるパターンの対応
+        # 200 OK で公開されるが中身は未公開
+        response = conn.get do |request|
+          request.url "#{i}/"
+        end
+
+        break unless response.success?
+        break if response.body.include?("before-public")
+
         retval << { id: i, response: response }
       end
 
