@@ -11,7 +11,8 @@ class Goodmoggoodnews
 
     def self.go
       logger = Logger.new(STDOUT)
-      twitter = Goodmoggoodnews::Twitter.new
+      redis = Goodmoggoodnews::Redis.new
+      x = Goodmoggoodnews::X.new
 
       logger.info(LOG_TAG) { "もぐもぐアラート起動！" }
 
@@ -38,9 +39,9 @@ class Goodmoggoodnews
       end
 
       # どこまで読んだ
-      last_news_id = twitter.last_news_id
-      last_photo_id = twitter.last_photo_id
-      last_ticket_id = twitter.last_ticket_id
+      last_news_id = redis.last_news_id
+      last_photo_id = redis.last_photo_id
+      last_ticket_id = redis.last_ticket_id
 
       ################
       #     BLOG     #
@@ -61,15 +62,15 @@ class Goodmoggoodnews
         # 記事番号を更新
         if last_news_id < new_news_ids.max
           logger.info(LOG_TAG) { "Updating bookmark: last_news_id=#{last_news_id}, new_news_id=#{new_news_ids.max}" }
-          twitter.last_news_id = new_news_ids.max
+          redis.last_news_id = new_news_ids.max
         end
 
         # 新着記事をツイート
         new_news.each do |e|
           response = Goodmoggoodnews::Crawler.get(e.env.url)
           tweet_body = Goodmoggoodnews::Scraper.scrape(response.body) + "\n" + e.env.url.to_s
-          twitter.client.update tweet_body
-          logger.info("Tweet") { tweet_body }
+          x.post(tweet_body)
+          logger.info("Post") { tweet_body }
           Goodmoggoodnews.sleep_random(10)
         end
       end
@@ -94,15 +95,15 @@ class Goodmoggoodnews
         # 記事番号を更新
         if last_photo_id < new_photo_ids.max
           logger.info(LOG_TAG) { "Updating bookmark: last_photo_id=#{last_photo_id}, new_photo_id=#{new_photo_ids.max}" }
-          twitter.last_photo_id = new_photo_ids.max
+          redis.last_photo_id = new_photo_ids.max
         end
 
         # 新着記事をツイート
         new_photos.each do |e|
           response = Goodmoggoodnews::Crawler.get(e.env.url)
           tweet_body = Goodmoggoodnews::Scraper.scrape_photo_page(response.body) + "\n" + e.env.url.to_s
-          twitter.client.update tweet_body
-          logger.info("Tweet") { tweet_body }
+          x.post(tweet_body)
+          logger.info("Post") { tweet_body }
           Goodmoggoodnews.sleep_random(10)
         end
       end
@@ -127,15 +128,15 @@ class Goodmoggoodnews
         # 記事番号を更新
         if last_ticket_id < new_ticket_ids.max
           logger.info(LOG_TAG) { "Updating bookmark: last_ticket_id=#{last_ticket_id}, new_ticket_id=#{new_ticket_ids.max}" }
-          twitter.last_ticket_id = new_ticket_ids.max
+          redis.last_ticket_id = new_ticket_ids.max
         end
 
         # 新着記事をツイート
         new_tickets.each do |e|
           response = Goodmoggoodnews::Crawler.get(e.env.url)
           tweet_body = Goodmoggoodnews::Scraper.scrape_ticket_page(response.body) + "\n" + e.env.url.to_s
-          twitter.client.update tweet_body
-          logger.info("Tweet") { tweet_body }
+          x.post(tweet_body)
+          logger.info("Post") { tweet_body }
           Goodmoggoodnews.sleep_random(10)
         end
       end

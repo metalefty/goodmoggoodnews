@@ -4,6 +4,7 @@ require_relative "goodmoggoodnews/version"
 require_relative "goodmoggoodnews/runner"
 require_relative "goodmoggoodnews/line_runner"
 
+require "x"
 require "twitter"
 require "faraday"
 require "faraday_middleware"
@@ -62,6 +63,24 @@ class Goodmoggoodnews
         config.channel_secret = ENV["LINE_CHANNEL_SECRET"]
         config.channel_token = ENV["LINE_CHANNEL_TOKEN"]
       }
+    end
+  end
+
+  # X (Twitter V2)関連の操作
+  class X
+    attr_reader :client
+
+    def initialize
+      @client = ::X::Client.new(
+        api_key:             ENV["API_KEY"],
+        api_key_secret:      ENV["API_KEY_SECRET"],
+        access_token:        ENV["ACCESS_TOKEN"],
+        access_token_secret: ENV["ACCESS_TOKEN_SECRET"],
+      )
+    end
+
+    def post(text)
+      @client.post("tweets", { text: text }.to_json)
     end
   end
 

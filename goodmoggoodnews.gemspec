@@ -29,6 +29,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_dependency "twitter", "~> 7.0.0"
+  spec.add_dependency "x", "~>0.14.0"
   spec.add_dependency "nokogiri", "~> 1.11.1"
   spec.add_dependency "faraday", "~> 1.3.0"
   spec.add_dependency "faraday_middleware", "~> 1.0.0"
