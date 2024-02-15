@@ -213,6 +213,8 @@ class Goodmoggoodnews
 
         break unless response.success?
         break if response.body.include?("before-public")
+        # http://sorry.pia.jp/nt2/the-pillows/punk.html
+        break if response.body.include?("ソーリーコンテンツ")
 
         retval << { id: i, response: response }
       end
